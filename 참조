@@ -1,0 +1,10 @@
+응시 환경에서 환경에서 환경에서 환경에서 HTTP 통신 시나리오 나리오 나리오 가 활용되는 활용되는 활용되는 활용되는 경우 
+아래 Library 를 포함하여 포함하여 포함하여 포함하여 제공할 예정이며 , 그 외 Library 를 선택하여 선택하여 선택하여 선택하여 Download 하여 사용도 가능합니다 
+
+[Java]
+- Http Server : Jetty 9 Embedded (https://www.eclipse.org/jetty/documentation/jetty-9/index.html#jetty-helloworld)
+- Http Client : Jetty 9 HttpClient (https://www.eclipse.org/jetty/documentation/jetty-9/index.html#http-client)
+- Json : Google Gson 2.8.6 (https://github.com/google/gson)
+
+
+
