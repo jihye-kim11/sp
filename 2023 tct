@@ -1,0 +1,542 @@
+```java
+public static void main(String[] args) {
+	 Worker worker = new Worker(0);
+	 Worker worker2 = new Worker(1);
+	 String res;
+	Scanner scanner = new Scanner(System.in); //사용자로부터 콘솔 입력받기
+	String input;
+	String []arrays;
+    while (true) {//무한반복입력
+        input = scanner.nextLine();//입력받은 값
+        arrays=input.split(" ");//0 VIEW_AD1 값 split
+
+        if(arrays[0]=="0") {
+        	res=worker.run(arrays[1]);
+        }
+        else {
+        	res=worker2.run(arrays[1]);
+        }
+        if(res!=null) {
+        	System.out.println(res);
+        }
+    }
+}
+```
+
+
+
+
+
+
+
+```java
+public static void main(String[] args) {
+	 Worker worker = new Worker(0);
+	 Worker worker2 = new Worker(1);
+	 List<String> store=new ArrayList<String>();  //ArrayList 클래스를 사용하여 String 저장하는 리스트 생성  -> [apple, banana, orange] 
+    											  //store.add("banana") 와 같이 추가
+    											  //store.remove("banaba")와 같이 삭제
+    											  //store.clear() -> 초기화
+    											  //store.get(int index) ->지정된 인덱스 위치의 요소 반환
+       											  //store.indexOf(Object o) ->지정된 요소의 인덱스 위치 반환
+       											  //store.lastindexOf(Object o) ->지정된 요소의 마지막 인덱스 위치 반환
+       											  //store.subList(int fronindex,int toIndex) ->지정된 범위 내의 요소 반환
+    											  //store.set(int index,E element) -> 지정된 인덱스 위치의 요소를 새로운 요소로 교체
+	 List<String> store2=new ArrayList<String>();
+	 String res;
+	Scanner scanner = new Scanner(System.in);
+	String input;
+	String []arrays;
+   while (true) {
+       input = scanner.nextLine();
+       arrays=input.split(" ");
+       if(arrays[1].equalsIgnoreCase("0")) { //equalsIgnoreCase: 대소문자 무시하고 동일한지 확인
+    	   
+       	res=worker.run(Integer.parseInt(arrays[0]),arrays[2]); //Integer.parseInt(arrays[0]) : string to int
+           													   // String.valueOf(1) : int to string
+       	store.add(arrays[0]+"#"+arrays[2]);
+       	//System.out.println(store);   출력
+        worker.removeExpiredStoreItems(Long.parseLong(arrays[0]), store);
+       }
+       else {
+       	res=worker2.run(Integer.parseInt(arrays[0]),arrays[2]);
+       	store2.add(arrays[0]+"#"+arrays[2]);
+       	worker2.removeExpiredStoreItems(Long.parseLong(arrays[0]), store2);
+       }
+       if(res!=null) {
+       	System.out.println(res);
+       }
+   }
+}
+
++)ArrayList 클래스
+ArrayList<String> al = new String>(); //ArrayList 클래스를 사용하여 String 저장하는 리스트 생성  
+
+//데이터 출력 방식1
+for(String name:al){
+    System.out.println(name);
+}
+
+//데이터 출력 방식2
+for(int i=0; i<al.size(); i++){
+    System.out.println(al.get(i));
+}
+
+//데이터 출력 방식3
+Iterator<String> itr=al.iterator();
+while(itr.hasNext()){
+    System.out.println(itr.next());
+}
+
+//데이터 정렬하여 출력
+Collections.sort(al);
+for(String name:al){
+    System.out.println();
+}
+
+//데이터 내림차순 정렬하여 출력
+Comparator<String> co=new Comparator<String>(){
+    public int compare(String o1,String o2){
+        return(o2.compareTo(o1));
+    }
+}
+Collections.sort(al);
+for(String name:al){
+    System.out.println();
+}
+
+
+```
+
+```java
+/*
+ * ※ 만료된 Store Item 제거
+ * - 입력된 Timestamp와 Store Item의 Timestamp간의 차이가 만료시간(3000)을 초과하면 Store에서 제거
+ */
+public void removeExpiredStoreItems(long timestamp, List<String> store) {	
+	for (int i = store.size()-1; i >=0; i--) {
+		String item = store.get(i); //store.get(int index) ->지정된 인덱스 위치의 요소 반환
+		String []arrays=item.split("#");
+		if(Integer.parseInt(arrays[0])+3000<timestamp) {
+			store.remove(i);
+		}
+	    //System.out.println(item);
+	}
+}
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+```java
+public static void main(String[] args) {
+	// TODO Auto-generated method stub
+
+System.out.println(111);
+    try {
+        // 요청 URL 설정
+        URL url = new URL("http://127.0.0.1:8080/queueInfo");
+        HttpURLConnection con = (HttpURLConnection) url.openConnection();
+
+        // 요청 방식 설정 (GET 또는 POST)
+        con.setRequestMethod("GET");
+
+        // 응답 코드 확인  요청후에는 getResponseCode()를 호출하거나 InputStream()을 얻어야 정상적으로 연결이 이루어진다.
+        int responseCode = con.getResponseCode();
+        System.out.println("Response Code : " + responseCode);
+
+        // 응답 데이터 읽기   
+        BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+        String inputLine;
+        StringBuffer response = new StringBuffer();
+        while ((inputLine = in.readLine()) != null) {  
+            response.append(inputLine);  //한줄씩 받아서 저장중
+        }
+        in.close();
+
+        // JSON 데이터 파싱
+         /*
+         [Controller] HTTP 응답
+		{  "inputQueueCount":3,
+  		   "inputQueueURIs":["http://127.0.0.1:8010/input",
+                     		"http://127.0.0.1:8011/input",
+   	                  		"http://127.0.0.1:8012/input"],
+   		   "outputQueueURI":"http://127.0.0.1:9010/output"  }
+         */
+        Gson gson = new Gson();
+        JsonObject jsonObject = gson.fromJson(response.toString(), JsonObject.class);  // JSON 형식의 문자열을 JsonObject로 변환
+        int inputQueueCount = jsonObject.get("inputQueueCount").getAsInt();  //정수형으로 가져오기
+        String outputQueueURI = jsonObject.get("outputQueueURI").getAsString();  //string으류 가져오기
+        JsonArray inputQueueURIsArray = jsonObject.getAsJsonArray("inputQueueURIs"); //array 형태로 가져오기
+        List<String> inputQueueURIs = new ArrayList<>(); //리스트에 json값 넣기
+        for (int i = 0; i < inputQueueURIsArray.size(); i++) {
+            inputQueueURIs.add(inputQueueURIsArray.get(i).getAsString());
+        }
+        
+        /*
+        +)참조
+         JSON 형식의 문자열을 Jsonelement로 변환후 사용하는 방법
+        String json = "{\"name\":\"John\",\"age\":30,\"hobbies\":[\"reading\",\"swimming\",\"traveling\"]}";
+        JsonElement element = JsonParser.parseString(json);
+        JsonArray hobbies = element.getAsJsonObject().get("hobbies").getAsJsonArray();
+        */
+        
+        // 요청 URL 설정
+        int i =  inputQueueCount; // i는 가변값이며 양수입니다.
+        URL[]urls = new URL[i];
+        for (int j = 0; j < i; j++) {
+            urls[j]= new URL(inputQueueURIs.get(j));
+        }
+
+        // 쓰레드 생성 및 시작
+        for (int j = 0; j < i; j++) {
+            Thread thread = new Thread(new HttpThread(urls[j],j));  //멀티 스레드 돌리기 위해 for 문 내에서 진행
+            thread.start();
+        }
+        
+        // 응답 출력
+        System.out.println(inputQueueCount);
+        System.out.println(inputQueueURIs);
+        System.out.println(outputQueueURI);
+            } catch (Exception e) {
+        System.out.println(e);
+        e.printStackTrace();
+    }
+    		// Worker 인스턴스 2개 생성
+		Worker worker = new Worker(0);
+		Worker worker2 = new Worker(1);
+		Worker worker3 = new Worker(2);
+		List<String> store=new ArrayList<String>();
+		List<String> store2=new ArrayList<String>();
+		Scanner scanner=new Scanner(System.in);
+		String input;
+		String []arrays;
+		String res;
+		while(true) {
+			input=scanner.nextLine();
+			arrays=input.split(" ");
+			
+			if(arrays[1].equalsIgnoreCase("0")) {
+				res=worker.run(Integer.parseInt(arrays[0]),arrays[2]);
+				store.add(arrays[0]+"#"+arrays[2]);
+				worker.removeExpiredStoreItems(Integer.parseInt(arrays[0]), store);
+			}
+			else {
+				res=worker2.run(Integer.parseInt(arrays[0]),arrays[2]);
+				worker2.removeExpiredStoreItems(Integer.parseInt(arrays[0]), store2);
+				store2.add(arrays[0]+"#"+arrays[2]);
+			}
+			
+			if(res!=null) {
+				System.out.println(res);
+
+			}
+		}
+	}
+```
+
+
+​            
+
+
+
+```java
+class HttpThread implements Runnable {
+    private URL url;
+    List<String> store=new ArrayList<String>();
+    private int j;
+    String res;
+    String value;
+    int timestamp;
+
+    public HttpThread(URL url,int j) {
+        this.url = url;
+        this.j=j;
+    }
+    
+    Worker worker = new Worker(0);
+    Worker worker2 = new Worker(1);
+    Worker worker3 = new Worker(2);
+    Gson gson = new Gson();
+    JsonObject jsonObject;
+    
+    public void run() {
+    	while(true) {
+        try {
+            // HttpURLConnection 객체 생성
+            HttpURLConnection con = (HttpURLConnection) url.openConnection();
+
+            // 요청 방식 설정 (GET 또는 POST)
+            if(url.toString().equalsIgnoreCase("http://127.0.0.1:9010/output")) {
+            	  return; // 현재 동작 종료
+            }
+            else {
+            con.setRequestMethod("GET");
+            }
+            // 응답 코드 확인
+            int responseCode = con.getResponseCode();
+            System.out.println("Response Code 1: " + responseCode);
+
+            // 응답 데이터 읽기
+            BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+            String inputLine;
+            StringBuffer response = new StringBuffer();
+            while ((inputLine = in.readLine()) != null) {
+                response.append(inputLine);
+            }
+            in.close();
+
+            // '{"timestamp":4000,"value":"CLICK_AD1"}'
+            jsonObject = gson.fromJson(response.toString(), JsonObject.class);
+            value = jsonObject.get("value").getAsString();
+            timestamp = jsonObject.get("timestamp").getAsInt();
+            
+            
+            store.add(timestamp+"#"+value);
+            //worker = new Worker(j);
+            System.out.println("요청"+response.toString());
+            System.out.println(j);
+            if(j==0) {
+            res=worker.run(timestamp,value);
+            worker.removeExpiredStoreItems(timestamp,store);}
+            else if(j==1) {
+            	res=worker2.run(timestamp,value);
+                worker2.removeExpiredStoreItems(timestamp,store);	
+            }
+            else {
+            	res=worker3.run(timestamp,value);
+                worker3.removeExpiredStoreItems(timestamp,store);	
+            }
+
+         
+            // 응답 출력
+            System.out.println("응답확인"+res);
+            System.out.println(j);
+            System.out.println(" ");
+            if(res!=null) {
+            //output
+            url = new URL("http://127.0.0.1:9010/output");
+            con = (HttpURLConnection) url.openConnection();
+            
+            con.setRequestMethod("POST");
+            con.setRequestProperty("Content-Type", "application/json");
+            
+            con.setDoOutput(true);//OutputStream으로 POST 데이터를 넘겨주겠다는 옵션.
+                				  //setDoInput(true); -> InputStream으로 서버로 부터 응답을 받겠다는 옵션. 
+            OutputStream os = con.getOutputStream();  //Request Body에 Data를 담기위해 OutputStream 객체를 생성.
+             
+            JsonObject json = new JsonObject();
+            
+            json.addProperty("result", res);
+            String result = new Gson().toJson(json);
+            
+            os.write(result.getBytes());
+            os.flush();//출력 스트림(os)을 비워주는 코드입니다. 이를 통해 출력 스트림에 남아있는 데이터를 모두 전송합니다.
+            os.close();// 출력 스트림(os)을 닫는 코드입니다. 이를 통해 출력 스트림을 더 이상 사용하지 않게 됩니다.
+
+            responseCode = con.getResponseCode();// 실제 서버로 Request 요청 하는 부분. (응답 코드를 받는다. 200 성공, 나머지 에러)
+            System.out.println("Response Code 2: " + responseCode);
+            System.out.println(result);
+                
+             // 접속 종료
+			//conn.disconnect();
+            }
+        } catch (Exception e) {
+            System.out.println(e);
+            e.printStackTrace();
+            try {
+				Thread.sleep(100000);
+			} catch (InterruptedException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+        }
+    }
+    }
+
+}
+```
+
+
+
+
+
+
+
+
+
+```java
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.Scanner;
+
+public static void main(String[] args) throws IOException {
+	String adr="C:\\sp_workspace\\sp_java_test\\SUB1\\";
+	
+	try (Scanner in = new Scanner(System.in)) {
+		String s=in.nextLine();//콘솔 문자열 입력받기
+		BufferedReader reader = new BufferedReader( //해당 위치의 파일 읽기
+		        new FileReader(adr+s+".txt")
+		    );
+		    String str=reader.readLine();
+		    	
+		    try (BufferedReader reader2 = new BufferedReader(
+		                new FileReader(adr+str) 
+		            )) {
+				while ((str = reader2.readLine()) != null) {//버퍼로부터 한 줄씩 읽기
+		    	
+		        System.out.println(str);
+		    	}
+			}
+		    	reader.close();//버퍼 리더 닫기
+	}
+
+}
+```
+
+
+
+```java
+import java.io.FileInputStream; //파일로 부터 읽어오기 위한 객체
+import java.io.FileOutputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+
+public class ByteExam1 {//Byte 단위 입출력 클래스
+	public static void main(String[] args) throws IOException {
+    	FileInputStream  fis = null;
+    	FileOutputStream fos = null;
+    	try {
+            fis = new FileInputStream("src/level2/ByteExam1.java");//읽어들일 파일이 있는 경로와 파일명 작성
+            fos = new FileOutputStream("byte.text");//파일을 쓸 수 있게 해줌.생성될 파일의 경로와 이름을 적음.아무런 경로를 입력하지 않으면 프로젝트 밑의 위치에 생성.
+            int readCount = -1;
+            byte[] buffer = new byte[512];
+            while((readCount = fis.read(buffer)) != 1){//512byte로 선언한 buffer 만큼 읽어와서 buffer의 0부터,-1까지를 쓰는 코드 작성
+            	fos.write(buffer,0,readCount);
+            	}
+        	} catch (Exception e){
+            e.printStackTrace();
+        }finally{
+                try {
+                    fos.close();
+                } catch (IOException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+                try {
+                    fis.close();
+                } catch (IOException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+            }
+    }
+}
+
+
++)얼마나 걸렸는지 확인 가능한 코드
+long startTime = System.currentTimeMillis();
+long endTime = System.currentTimeMillis();
+System.out.println(endTime - startTime);
+```
+
+
+
+Map
+
+-저장되는 순서가 유지되지 않는 구조
+
+-key,value 형태
+
+-key 중복 불가
+
+```java
+HashMap<String,String> m=new HashMap<String,String>();
+		
+m.put("aaaaa", "111");
+m.put("bbbbb", "222");	
+m.put("ccccc", "333");
+		
+for(String key: m.keySet()) {
+	System.out.println(key + ":" + m.get(key));
+}
+		
+m.remove("aaaaa"); //key 이용하여 데이터 삭제
+		
+m.replace("bbbbb","565"); //key 이용하여 value 변경
+```
+
+
+
+큐(Queue)
+
+-선입선출(fifo) 형식
+
+```java
+public static void main(String[] args) throws IOException {
+	
+	Queue<String> numberQ=new LinkedList<>();
+	
+	numberQ.add("one");
+	numberQ.add("two");
+	numberQ.add("three");
+	
+	System.out.println(numberQ.size()); //큐의 크기  결과는 3
+	for(String i:numberQ) {
+		System.out.println(i); //큐 순차적 출력
+	}
+	
+	System.out.println(numberQ.poll()); // 큐에서 가장 앞에 있는 요소를 제거하고 반환합니다. 큐가 비어있으면 null을 반환
+	System.out.println(numberQ.peek()); //큐에서 가장 앞에 있는 요소를 반환합니다. 큐가 비어있으면 null을 반환
+	System.out.println(numberQ.contains("three"));//boolean값 반환
+}
+```
+
+
+​	
+
+
+
+
+
+외부 프로세스 실행(Thread)
+
+```java
+public static String getProcessOutput(List<String> cmdList) throws IOException {
+	ProcessBuilder builder=new ProcessBuilder(cmdList);
+	Process process=builder.start();//프로세스 실행
+	InputStream psout=process.getInputStream();
+	byte[] buffer=new byte[1024];//출력 가져오기
+	psout.read(buffer);
+	
+	return(new String(buffer));
+	
+} 
+//후에 getProcessOutput(Arrays.asList("add_2sec.exe","2","3")); 과 같이 실행시켜줌
+```
+
+
+
+java  delimiter
+
+```java
+String str="aaa | bbb | ccc";
+String [] words = str.split("\\|"); //|는 이스케이프 처리(\\)
+```
+
+
+
+
+
+
+
