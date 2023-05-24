@@ -1,0 +1,29 @@
+import java.util.Scanner;
+
+public class RunManager {
+
+	public static void main(String[] args) {
+		 Worker worker = new Worker(0);
+		 Worker worker2 = new Worker(1);
+		 String res;
+		Scanner scanner = new Scanner(System.in);
+		String input;
+		String []arrays;
+        while (true) {
+            input = scanner.nextLine();
+            arrays=input.split(" ");
+
+            if(arrays[0]=="0") {
+            	res=worker.run(arrays[1]);
+            }
+            else {
+            	res=worker2.run(arrays[1]);
+            }
+            if(res!=null) {
+            	System.out.println(res);
+            }
+        }
+	}
+	
+
+}
