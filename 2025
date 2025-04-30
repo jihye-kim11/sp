@@ -1,3 +1,6 @@
+
+
+```java
 package com.lgcns.test;
 
 import java.util.Scanner;
@@ -253,6 +256,11 @@ public class RunManager {
 
 
 }
+
+
+```
+
+
 
 ### **File** **I/O**
 
@@ -1370,7 +1378,7 @@ public class MyServlet extends HttpServlet {
 
 
 
-### 11
+### 2023-1 기출
 
 ```java
 package com.lgcns.test;
@@ -1558,3 +1566,5 @@ public class ServerCommandInfoData {
 
 
 
+
+### 2023-2 기출
