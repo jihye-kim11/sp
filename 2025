@@ -254,3 +254,237 @@ public class RunManager {
 
 }
 
+package com.lgcns.test;
+
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Scanner;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.eclipse.jetty.client.HttpClient;
+import org.eclipse.jetty.client.api.ContentResponse;
+import org.eclipse.jetty.client.util.StringContentProvider;
+import org.eclipse.jetty.http.HttpMethod;
+import org.eclipse.jetty.server.*;
+import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.servlet.ServletHandler;
+import org.eclipse.jetty.servlet.ServletHolder;
+
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+public class RunManager {
+
+	public static void main(String[] args) throws Exception {
+		
+		Server server = new Server();
+		ServerConnector http = new ServerConnector(server);
+		http.setHost("127.0.0.1");
+		http.setPort(8080);
+		server.addConnector(http);
+
+		 // 서블릿 핸들러 설정
+        ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
+        context.setContextPath("/");
+        server.setHandler(context);
+
+        // 서블릿 추가
+        context.addServlet(new ServletHolder(new MyServlet()), "/*");
+
+		server.start();
+		server.join();
+		
+		String filePath = "STATE.TXT";
+		// 파일에서 단어와 값을 읽어와서 맵에 저장
+        java.util.Map<String, String> state = new java.util.HashMap<>();
+        try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                String[] parts = line.split("#",2);
+                if (parts.length == 2) {
+                	state.put(parts[0].trim(), parts[1].trim());
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        
+        filePath = "VARIABLE.TXT";
+		// 파일에서 단어와 값을 읽어와서 맵에 저장
+        java.util.Map<String, String> variable = new java.util.HashMap<>();
+        try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                String[] parts = line.split("#",2);
+                if (parts.length == 2) {
+                	variable.put(parts[0].trim(), parts[1].trim());
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        
+		Scanner scanner = new Scanner(System.in);
+		String input;
+		String []arrays;
+		String ans="";
+		while(true) {
+			input = scanner.nextLine();
+			String target =state.get(input);
+			 String[] parts = target.split("#",3);
+			 ans+=parts[0] + " "+ parts[1];
+			 String[] var=parts[2].split(",");
+			 if(parts[2]!="" && parts[2]!=null) {
+				 ans+="?";
+				 for(int i = 0; i < var.length; i++) {
+					 if(i!=0) {ans+="&";}
+					 ans+=var[i]+"="+variable.get(var[i]);
+				 }
+				 }
+			 
+			 System.out.println(ans);
+		}
+
+	}
+	public static class MyServlet extends HttpServlet {
+		
+        protected void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+            System.out.println("Request URL: " + req.getRequestURI());
+            String type=req.getRequestURI().replace("/","");
+            
+            StringBuilder jsonContent = new StringBuilder();
+            try (BufferedReader reader = new BufferedReader(new FileReader("STATE.JSON"))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    jsonContent.append(line);
+                }
+            } catch (FileNotFoundException e) {
+    			// TODO Auto-generated catch block
+    			e.printStackTrace();
+    		} catch (IOException e) {
+    			// TODO Auto-generated catch block
+    			e.printStackTrace();
+    		}
+            
+         // JSON 파싱
+            Gson gson = new Gson();
+            JsonObject jsonObject = JsonParser.parseString(jsonContent.toString()).getAsJsonObject();
+            JsonObject stateObject = jsonObject.getAsJsonObject("state");
+
+            Map<String, State> stateMap = new HashMap<>();
+
+            for (Entry<String, JsonElement> entry : stateObject.entrySet()) {
+                String key = entry.getKey();
+                State state = gson.fromJson(entry.getValue(), State.class);
+                stateMap.put(key, state);
+            }
+
+            jsonContent = new StringBuilder();
+            try (BufferedReader reader = new BufferedReader(new FileReader("VARIABLE.JSON"))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    jsonContent.append(line);
+                }
+            } catch (FileNotFoundException e) {
+    			// TODO Auto-generated catch block
+    			e.printStackTrace();
+    		} catch (IOException e) {
+    			// TODO Auto-generated catch block
+    			e.printStackTrace();
+    		}
+            
+            gson = new Gson();
+            JsonObject variable = JsonParser.parseString(jsonContent.toString()).getAsJsonObject();
+            
+            // 출력하여 확인
+            for (Entry<String, State> entry : stateMap.entrySet()) {
+                if(entry.getKey().equalsIgnoreCase(type)) {
+                	 System.out.println();
+                	 System.out.println();
+                	String url= entry.getValue().getUrl();
+                	System.out.println("Key: " + entry.getKey());
+                    System.out.println("Type: " + entry.getValue().getType());
+                    System.out.println("URL: " + entry.getValue().getUrl());
+                    System.out.println("Parameters: " + String.join(", ", entry.getValue().getParameters()));
+                    if(entry.getValue().getParameters().length>=1) {url+="?";};
+                    int i=0;
+                	for(String parameter:entry.getValue().getParameters()) {
+                		if(i>=1) {url+="&";}
+                    	url+=parameter+"="+variable.get(parameter).getAsString();
+                    	i++;
+                    }
+                    
+        	        HttpClient httpClient = new HttpClient();
+        			try {
+    					httpClient.start();
+    					System.out.println(url);
+    					ContentResponse contentRes = httpClient.newRequest(url).method(HttpMethod.GET)
+    	    					.send();
+    					System.out.println("check:::"+contentRes.getContentAsString());
+    					gson = new Gson();
+    		            jsonObject = JsonParser.parseString(jsonContent.toString()).getAsJsonObject();
+    		         // 키와 값 출력
+    		            for (Map.Entry<String, JsonElement> entryss : jsonObject.entrySet()) {
+    		                String key = entryss.getKey();
+    		                String value = entryss.getValue().getAsString();
+    		                variable.addProperty(key,value);
+    		            }
+    		            
+        			}catch (Exception e) {
+    					// TODO Auto-generated catch block
+    					e.printStackTrace();
+    				}
+                }
+            }
+        
+        }
+        
+        
+       
+	}
+	
+	static class State {
+	    private String type;
+	    private String url;
+	    private String[] parameters;
+
+	    // Getter와 Setter 메서드
+	    public String getType() {
+	        return type;
+	    }
+
+	    public void setType(String type) {
+	        this.type = type;
+	    }
+
+	    public String getUrl() {
+	        return url;
+	    }
+
+	    public void setUrl(String url) {
+	        this.url = url;
+	    }
+	    
+	    public String[] getParameters() {
+	        return parameters;
+	    }
+
+	    public void setParameters(String[] parameters) {
+	        this.parameters = parameters;
+	    }
+	}
+
+}
+
